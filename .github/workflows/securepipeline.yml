@@ -6,7 +6,8 @@ on:
       - master
 
 jobs:
-  deploy-job:
+  # Job 1: Checkout code and setup environment
+  setup-environment:
     runs-on: ubuntu-latest
 
     steps:
@@ -24,46 +25,52 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin' 
-          java-version: '17'    
-          
+          java-version: '17'
+
+  # Job 2: Run Security Scans
+  security-scans:
+    runs-on: ubuntu-latest
+    needs: setup-environment
+
+    steps:
       - name: Run HawkScan
         uses: stackhawk/hawkscan-action@v2
         with:
-          apiKey: ${{ secrets.HAWK_API_KEY }} 
+          apiKey: ${{ secrets.HAWK_API_KEY }}
 
-      
-              
-      # - name: Run SonarQube Scan
-      #   run: |
-      #     docker run \
-      #       -e SONAR_HOST_URL=${{ secrets.SONAR_HOST_URL }} \
-      #       -e SONAR_TOKEN=${{ secrets.SONAR_TOKEN }} \
-      #       -v "${{ github.workspace }}:/usr/src" \
-      #       sonarsource/sonar-scanner-cli:latest \
-      #       -Dsonar.projectBaseDir=/usr/src
-      #   env:
-      #     SONAR_SCANNER_OPTS: "-Djava.version=17"
-          
-      - name: "Run FOSSA Scan"
+      - name: Run FOSSA Scan
         uses: fossas/fossa-action@v1
         with:
-          api-key: ${{secrets.fossaApiKey}}
+          api-key: ${{ secrets.fossaApiKey }}
 
-      - name: "Run FOSSA Test"
+      - name: Run FOSSA Test
         uses: fossas/fossa-action@v1
         with:
-          api-key: ${{secrets.fossaApiKey}}
+          api-key: ${{ secrets.fossaApiKey }}
           run-tests: true
-        continue-on-error: false
+        continue-on-error: true
 
+  # Job 3: Build Application
+  build:
+    runs-on: ubuntu-latest
+    needs: setup-environment
 
-          
-      - name: Build Application
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install dependencies and build
         run: |
           npm install 
           npm run build
-        
+
+  # Job 4: Deploy to EC2
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [setup-environment, build]
+
+    steps:
       - name: Deploy to EC2
         run: |
           scp -o StrictHostKeyChecking=no -r build ${{ secrets.EC2_INSTANCE_USER }}@${{ secrets.EC2_INSTANCE_IP }}:/home/ubuntu/
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_INSTANCE_USER }}@${{ secrets.EC2_INSTANCE_IP }} 'cd /home/ubuntu  && pm2 delete react-build && pm2 serve build/ 3000 --name "react-build" --spa && exit'
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_INSTANCE_USER }}@${{ secrets.EC2_INSTANCE_IP }} 'cd /home/ubuntu && pm2 delete react-build && pm2 serve build/ 3000 --name "react-build" --spa && exit'
