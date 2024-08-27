@@ -84,11 +84,9 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           echo -e "StrictHostKeyChecking no\n" >> ~/.ssh/config
-      - name: List files to debug
-        run: ls /home/runner/work/PortfolioWebsite/PortfolioWebsite
 
       - name: Deploy to EC2
         run: |
           
-          scp -o StrictHostKeyChecking=no -r /home/runner/work/PortfolioWebsite/PortfolioWebsite/build/* ${{ secrets.EC2_INSTANCE_USER }}@${{ secrets.EC2_INSTANCE_IP }}:/home/ubuntu/
+          scp -o StrictHostKeyChecking=no -r * ${{ secrets.EC2_INSTANCE_USER }}@${{ secrets.EC2_INSTANCE_IP }}:/home/ubuntu/
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_INSTANCE_USER }}@${{ secrets.EC2_INSTANCE_IP }} 'cd /home/ubuntu && pm2 delete react-build && pm2 serve build/ 3000 --name "react-build" --spa && exit'
