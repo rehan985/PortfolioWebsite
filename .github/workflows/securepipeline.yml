@@ -25,22 +25,22 @@ jobs:
         with:
           apiKey: ${{ secrets.HAWK_API_KEY }} 
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin' 
-          java-version: '17'
+      # - name: Set up JDK 17
+      #   uses: actions/setup-java@v3
+      #   with:
+      #     distribution: 'temurin' 
+      #     java-version: '17'
               
-      - name: Run SonarQube Scan
-        run: |
-          docker run \
-            -e SONAR_HOST_URL=${{ secrets.SONAR_HOST_URL }} \
-            -e SONAR_TOKEN=${{ secrets.SONAR_TOKEN }} \
-            -v "${{ github.workspace }}:/usr/src" \
-            sonarsource/sonar-scanner-cli:latest \
-            -Dsonar.projectBaseDir=/usr/src
-        env:
-          SONAR_SCANNER_OPTS: "-Djava.version=17"
+      # - name: Run SonarQube Scan
+      #   run: |
+      #     docker run \
+      #       -e SONAR_HOST_URL=${{ secrets.SONAR_HOST_URL }} \
+      #       -e SONAR_TOKEN=${{ secrets.SONAR_TOKEN }} \
+      #       -v "${{ github.workspace }}:/usr/src" \
+      #       sonarsource/sonar-scanner-cli:latest \
+      #       -Dsonar.projectBaseDir=/usr/src
+      #   env:
+      #     SONAR_SCANNER_OPTS: "-Djava.version=17"
           
       - name: "Run FOSSA Scan"
         uses: fossas/fossa-action@v1
