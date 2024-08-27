@@ -20,12 +20,7 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           echo -e "StrictHostKeyChecking no\n" >> ~/.ssh/config
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin' 
-          java-version: '17'
+ 
 
   # Job 2: Run Security Scans
   security-scans:
@@ -33,6 +28,11 @@ jobs:
     needs: setup-environment
 
     steps:
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin' 
+          java-version: '17'
       - name: Run HawkScan
         uses: stackhawk/hawkscan-action@v2
         with:
