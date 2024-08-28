@@ -3,7 +3,7 @@ name: Secure Pipeline Deploy to EC2
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   # Job 1: Checkout code and setup environment
